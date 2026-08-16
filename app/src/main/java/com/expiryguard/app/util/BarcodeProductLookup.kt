@@ -90,7 +90,7 @@ object BarcodeProductLookup {
         result = lookupUpcItemDb(barcode)
         if (result != null) return@withContext result
 
-        Log.d(TAG, "Product not found in any database for barcode: $barcode")
+
         null
     }
 

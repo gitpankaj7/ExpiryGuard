@@ -40,12 +40,17 @@ class ExpiryNotificationWorker(
                 if (notificationCount >= 5) break // Max 5 notifications per run
 
                 val daysRemaining = DateUtils.daysUntilExpiry(product.expiryDate)
+                val riskAction = com.expiryguard.app.util.LossRecoveryEngine.analyze(listOf(product)).allActions.firstOrNull()
+                
                 if (daysRemaining == 30L || daysRemaining == 15L || daysRemaining == 7L || daysRemaining == 3L || daysRemaining <= 1L) {
+                    val actionText = riskAction?.bestAction ?: "Purana stock sabse pehle nikalo."
+                    
                     NotificationHelper.showExpiryNotification(
                         context = applicationContext,
                         productName = product.name,
                         daysRemaining = daysRemaining,
-                        notificationId = product.hashCode()
+                        notificationId = product.hashCode(),
+                        actionText = actionText
                     )
                     notificationCount++
                 }

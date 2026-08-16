@@ -27,14 +27,83 @@ import com.expiryguard.app.data.local.UserProfile
 import com.expiryguard.app.data.repository.UserRepository
 import kotlinx.coroutines.launch
 
+import com.expiryguard.app.PaymentEventBus
+import com.expiryguard.app.PaymentResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONObject
+
 class SubscriptionViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authRepository: com.expiryguard.app.data.repository.AuthRepository
 ) : ViewModel() {
     val userProfile = userRepository.userProfileFlow
 
-    fun simulateSubscription() {
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    private val _razorpayPayload = MutableStateFlow<JSONObject?>(null)
+    val razorpayPayload: StateFlow<JSONObject?> = _razorpayPayload.asStateFlow()
+
+    private val _paymentError = MutableStateFlow<String?>(null)
+    val paymentError: StateFlow<String?> = _paymentError.asStateFlow()
+
+    init {
         viewModelScope.launch {
-            userRepository.simulateSubscription()
+            PaymentEventBus.paymentResults.collect { result ->
+                when (result) {
+                    is PaymentResult.Success -> verifyPayment(result.orderId, result.paymentId, result.signature)
+                    is PaymentResult.Error -> {
+                        _isLoading.value = false
+                        _paymentError.value = "Payment failed: ${result.response}"
+                    }
+                }
+            }
+        }
+    }
+
+    fun startCheckout() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _paymentError.value = null
+            
+            val orderData = authRepository.createRazorpayOrder()
+            if (orderData != null) {
+                val orderId = orderData["id"] as String
+                val amount = orderData["amount"] as Int
+                val currency = orderData["currency"] as String
+                val keyId = orderData["keyId"] as String
+                
+                val options = JSONObject()
+                options.put("key", keyId)
+                options.put("amount", amount)
+                options.put("currency", currency)
+                options.put("name", "ExpiryGuard Premium")
+                options.put("description", "1-Month Subscription")
+                options.put("order_id", orderId)
+                
+                _razorpayPayload.value = options
+            } else {
+                _isLoading.value = false
+                _paymentError.value = "Could not create order. Please try again."
+            }
+        }
+    }
+    
+    fun onCheckoutLaunched() {
+        _razorpayPayload.value = null
+    }
+
+    private suspend fun verifyPayment(orderId: String, paymentId: String, signature: String) {
+        _isLoading.value = true
+        val verified = authRepository.verifyRazorpayPayment(orderId, paymentId, signature)
+        _isLoading.value = false
+        if (verified) {
+            // Profile is updated on the server, local snapshot listener will automatically update UI
+            _paymentError.value = null
+        } else {
+            _paymentError.value = "Payment verification failed."
         }
     }
 
@@ -42,7 +111,10 @@ class SubscriptionViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as ExpiryGuardApp
-                SubscriptionViewModel(app.container.userRepository)
+                SubscriptionViewModel(
+                    app.container.userRepository,
+                    com.expiryguard.app.data.repository.AuthRepository()
+                )
             }
         }
     }
@@ -56,6 +128,24 @@ fun SubscriptionScreen(
 ) {
     val viewModel: SubscriptionViewModel = viewModel(factory = SubscriptionViewModel.Factory)
     val userProfile by viewModel.userProfile.collectAsState(initial = null)
+    
+    val isLoading by viewModel.isLoading.collectAsState()
+    val paymentError by viewModel.paymentError.collectAsState()
+    val razorpayPayload by viewModel.razorpayPayload.collectAsState()
+    
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    LaunchedEffect(razorpayPayload) {
+        razorpayPayload?.let { payload ->
+            val activity = context as? android.app.Activity
+            if (activity != null) {
+                val checkout = com.razorpay.Checkout()
+                checkout.setKeyID(payload.getString("key"))
+                checkout.open(activity, payload)
+                viewModel.onCheckoutLaunched()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -146,20 +236,38 @@ fun SubscriptionScreen(
                 
                 Spacer(modifier = Modifier.height(48.dp))
                 
+                if (paymentError != null) {
+                    Text(
+                        text = paymentError!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+                
                 Button(
-                    onClick = { viewModel.simulateSubscription() },
+                    onClick = { viewModel.startCheckout() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isLoading
                 ) {
-                    Text("Subscribe for ₹99/month", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text("Upgrade for ₹49/month", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "(This is a mockup. Tapping will simulate a successful payment for testing.)",
+                    text = "Cancel anytime. Secure payment via Razorpay.",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

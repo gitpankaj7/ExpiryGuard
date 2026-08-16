@@ -38,7 +38,8 @@ object NotificationHelper {
         context: Context,
         productName: String,
         daysRemaining: Long,
-        notificationId: Int
+        notificationId: Int,
+        actionText: String? = null
     ) {
         val title = when {
             daysRemaining <= 0 -> "🚨 Product Expired!"
@@ -47,11 +48,15 @@ object NotificationHelper {
             else -> "📦 Expiry Reminder"
         }
 
-        val text = when {
+        var text = when {
             daysRemaining < 0 -> "$productName expired ${-daysRemaining} days ago"
             daysRemaining == 0L -> "$productName expires today"
             daysRemaining == 1L -> "$productName expires tomorrow"
             else -> "$productName expires in $daysRemaining days"
+        }
+        
+        if (actionText != null) {
+            text = "$productName ka expiry $daysRemaining din me hai. $actionText"
         }
 
         val intent = Intent(context, MainActivity::class.java).apply {

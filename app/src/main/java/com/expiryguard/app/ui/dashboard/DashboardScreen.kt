@@ -71,12 +71,6 @@ fun DashboardScreen(
     val viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
     val state by viewModel.uiState.collectAsState()
 
-    var contentVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(100)
-        contentVisible = true
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -85,10 +79,7 @@ fun DashboardScreen(
             .padding(top = 16.dp, bottom = 24.dp)
     ) {
         // ── Header ──
-        AnimatedVisibility(
-            visible = contentVisible,
-            enter = fadeIn() + slideInVertically { -40 }
-        ) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -138,15 +129,11 @@ fun DashboardScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
 
         Spacer(Modifier.height(20.dp))
 
         // ── Stats Grid (2×2) ──
-        AnimatedVisibility(
-            visible = contentVisible,
-            enter = fadeIn() + slideInVertically { 60 }
-        ) {
+
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -191,15 +178,11 @@ fun DashboardScreen(
                     )
                 }
             }
-        }
 
         Spacer(Modifier.height(24.dp))
 
         // ── Quick Actions ──
-        AnimatedVisibility(
-            visible = contentVisible,
-            enter = fadeIn() + slideInVertically { 80 }
-        ) {
+
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -237,15 +220,11 @@ fun DashboardScreen(
                     Text("Scan Barcode")
                 }
             }
-        }
 
         Spacer(Modifier.height(28.dp))
 
         // ── Expiring Soon Section ──
-        AnimatedVisibility(
-            visible = contentVisible,
-            enter = fadeIn() + slideInVertically { 100 }
-        ) {
+
             Column {
                 Text(
                     text = "Expiring Soon",
@@ -273,6 +252,5 @@ fun DashboardScreen(
                     }
                 }
             }
-        }
     }
 }

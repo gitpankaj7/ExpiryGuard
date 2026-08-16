@@ -34,7 +34,7 @@ class UserRepository {
                                 "uid" to user.uid,
                                 "name" to (user.displayName ?: ""),
                                 "email" to (user.email ?: ""),
-                                "trialStart" to System.currentTimeMillis(),
+                                "trialStart" to com.google.firebase.firestore.FieldValue.serverTimestamp(),
                                 "isSubscribed" to false
                             )
                             firestore.collection("users").document(user.uid).set(userProfile)

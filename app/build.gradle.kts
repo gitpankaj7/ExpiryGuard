@@ -59,6 +59,7 @@ dependencies {
 
   // Core Android
   implementation(libs.androidx.core.ktx)
+  implementation("androidx.core:core-splashscreen:1.0.1")
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
 
@@ -100,8 +101,16 @@ dependencies {
   // Firebase
   val firebaseBom = platform(libs.firebase.bom)
   implementation(firebaseBom)
-  implementation(libs.firebase.auth)
-  implementation(libs.firebase.firestore)
+  implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+  implementation("com.google.firebase:firebase-auth-ktx")
+  implementation("com.google.firebase:firebase-firestore-ktx")
+
+  // Razorpay for Payments
+  implementation("com.razorpay:checkout:1.6.38")
+
+  // OkHttp & Gson for standard REST API requests
+  implementation("com.squareup.okhttp3:okhttp:4.12.0")
+  implementation("com.google.code.gson:gson:2.10.1")
 
   // Testing
   testImplementation(libs.junit)

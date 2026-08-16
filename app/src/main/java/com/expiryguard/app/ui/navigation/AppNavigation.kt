@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Inventory2
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -43,6 +44,7 @@ import com.expiryguard.app.ui.scanner.BarcodeScannerScreen
 import com.expiryguard.app.ui.scanner.ExpiryOcrScreen
 import com.expiryguard.app.ui.settings.SettingsScreen
 import com.expiryguard.app.ui.subscription.SubscriptionScreen
+import com.expiryguard.app.ui.assistant.LossRecoveryScreen
 
 private data class NavItem(
     val label: String,
@@ -51,6 +53,7 @@ private data class NavItem(
 
 private val navItems = listOf(
     NavItem("Dashboard", Icons.Rounded.Dashboard),
+    NavItem("Assistant", Icons.Rounded.AutoAwesome),
     NavItem("Products", Icons.Rounded.Inventory2),
     NavItem("Settings", Icons.Rounded.Settings)
 )
@@ -90,6 +93,13 @@ fun AppNavigation(
     // Wait for the initial DataStore emission before showing auth vs main
     if (loggedInUserId == "__LOADING__") {
         return
+    }
+
+    androidx.compose.runtime.LaunchedEffect(loggedInUserId) {
+        if (loggedInUserId == null) {
+            selectedTab = 0
+            authRoute = "login"
+        }
     }
 
     if (loggedInUserId == null) {
@@ -218,40 +228,37 @@ fun AppNavigation(
         AnimatedContent(
             targetState = selectedTab,
             transitionSpec = {
-                (fadeIn()).togetherWith(fadeOut())
+                fadeIn() togetherWith fadeOut()
             },
-            label = "tabNavigation"
-        ) { tab ->
-            when (tab) {
+            label = "TabTransition"
+        ) { targetTab ->
+            when (targetTab) {
                 0 -> DashboardScreen(
                     userProfile = userProfile,
                     onNavigateToProducts = { filter -> 
                         requestedFilter = filter
                         filterRequestKey++
-                        selectedTab = 1 
+                        selectedTab = 2 // Products tab is now index 2
                     },
-                    onNavigateToSubscription = {
-                        showSubscriptionScreen = true
-                    },
-                    onAddProduct = {
-                        if (userProfile?.isTrialExpired() == true && userProfile?.isSubscribed == false) {
-                            showSubscriptionScreen = true
-                        } else {
-                            addEditKey++  // Fresh ViewModel every time
-                            showAddEditProduct = true
-                        }
-                    },
-                    onEditProduct = { id ->
+                    onAddProduct = { 
+                        editProductId = null
                         addEditKey++
-                        editProductId = id
+                        showAddEditProduct = true 
                     },
-                    onScanBarcode = {
+                    onEditProduct = { productId ->
+                        editProductId = productId
+                        addEditKey++
+                        showAddEditProduct = true
+                    },
+                    onNavigateToSubscription = { showSubscriptionScreen = true },
+                    onScanBarcode = { 
                         scannerFromForm = false
-                        showScanner = true
+                        showScanner = true 
                     },
                     modifier = Modifier.padding(innerPadding)
                 )
-                1 -> ProductListScreen(
+                1 -> LossRecoveryScreen(modifier = Modifier.padding(innerPadding))
+                2 -> ProductListScreen(
                     userProfile = userProfile,
                     requestedFilter = requestedFilter,
                     filterRequestKey = filterRequestKey,
@@ -263,9 +270,10 @@ fun AppNavigation(
                             showAddEditProduct = true
                         }
                     },
-                    onEditProduct = { id ->
+                    onEditProduct = { productId ->
+                        editProductId = productId
                         addEditKey++
-                        editProductId = id
+                        showAddEditProduct = true
                     },
                     onScanBarcode = {
                         scannerFromForm = false
@@ -273,7 +281,7 @@ fun AppNavigation(
                     },
                     modifier = Modifier.padding(innerPadding)
                 )
-                2 -> SettingsScreen(
+                3 -> SettingsScreen(
                     userProfile = userProfile,
                     isDarkMode = isDarkMode,
                     onToggleDarkMode = onToggleDarkMode,
@@ -281,6 +289,7 @@ fun AppNavigation(
                     onNavigateToSubscription = {
                         showSubscriptionScreen = true
                     },
+                    onDeleteAccount = { authViewModel.deleteAccount() },
                     modifier = Modifier.padding(innerPadding)
                 )
             }
