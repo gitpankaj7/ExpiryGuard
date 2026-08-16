@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -161,7 +163,6 @@ fun SettingsScreen(
                     )
                 )
             }
-            }
 
             androidx.compose.material3.Divider(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -180,7 +181,7 @@ fun SettingsScreen(
                     .padding(16.dp)
             ) {
                 Icon(
-                    androidx.compose.material.icons.Icons.Rounded.Translate,
+                    androidx.compose.material.icons.Icons.Rounded.Info,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
