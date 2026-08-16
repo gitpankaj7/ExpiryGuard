@@ -281,17 +281,29 @@ fun AppNavigation(
                     },
                     modifier = Modifier.padding(innerPadding)
                 )
-                3 -> SettingsScreen(
-                    userProfile = userProfile,
-                    isDarkMode = isDarkMode,
-                    onToggleDarkMode = onToggleDarkMode,
-                    onLogout = { authViewModel.logout() },
-                    onNavigateToSubscription = {
-                        showSubscriptionScreen = true
-                    },
-                    onDeleteAccount = { authViewModel.deleteAccount() },
-                    modifier = Modifier.padding(innerPadding)
-                )
+                3 -> {
+                    SettingsScreen(
+                        userProfile = userProfile,
+                        isDarkMode = isDarkMode,
+                        onToggleDarkMode = onToggleDarkMode,
+                        language = app.container.userPreferences.language.collectAsState(initial = "en").value,
+                        onChangeLanguage = { lang ->
+                            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                                app.container.userPreferences.setLanguage(lang)
+                            }
+                        },
+                        onLogout = {
+                            authViewModel.logout()
+                        },
+                        onDeleteAccount = {
+                            authViewModel.deleteAccount()
+                        },
+                        onNavigateToSubscription = {
+                            showSubscriptionScreen = true
+                        },
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             }
         }
     }

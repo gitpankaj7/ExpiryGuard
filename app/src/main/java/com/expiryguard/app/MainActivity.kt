@@ -38,17 +38,28 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
         setContent {
             val isDarkMode by app.container.userPreferences.isDarkMode.collectAsState(initial = false)
+            val language by app.container.userPreferences.language.collectAsState(initial = "en")
             val composeScope = rememberCoroutineScope()
 
-            ExpiryGuardTheme(darkTheme = isDarkMode) {
-                AppNavigation(
-                    isDarkMode = isDarkMode,
-                    onToggleDarkMode = { enabled ->
-                        composeScope.launch {
-                            app.container.userPreferences.setDarkMode(enabled)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val locale = java.util.Locale(language)
+            val config = android.content.res.Configuration(context.resources.configuration)
+            config.setLocale(locale)
+            val localizedContext = context.createConfigurationContext(config)
+
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalContext provides localizedContext
+            ) {
+                ExpiryGuardTheme(darkTheme = isDarkMode) {
+                    AppNavigation(
+                        isDarkMode = isDarkMode,
+                        onToggleDarkMode = { enabled ->
+                            composeScope.launch {
+                                app.container.userPreferences.setDarkMode(enabled)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ExpiryGuard</string>
+    <string name="dashboard">डैशबोर्ड</string>
+    <string name="products">उत्पाद</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="add_product">उत्पाद जोड़ें</string>
+    <string name="edit_product">उत्पाद संपादित करें</string>
+    <string name="save">सहेजें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="delete">हटाएं</string>
+    <string name="search_products">उत्पाद खोजें</string>
+    <string name="product_name">उत्पाद का नाम</string>
+    <string name="category">श्रेणी</string>
+    <string name="quantity">मात्रा</string>
+    <string name="purchase_price">खरीद मूल्य</string>
+    <string name="expiry_date">समाप्ति तिथि (Expiry Date)</string>
+    <string name="total_products">कुल उत्पाद</string>
+    <string name="expiring_30_days">30 दिन में समाप्त होने वाले</string>
+    <string name="expiring_7_days">7 दिन में समाप्त होने वाले</string>
+    <string name="expired_products">समाप्त (Expired)</string>
+    <string name="no_products">कोई उत्पाद नहीं</string>
+    <string name="add_first_product">शुरू करने के लिए अपना पहला उत्पाद जोड़ें</string>
+    <string name="dark_mode">डार्क मोड</string>
+    <string name="export_csv">CSV निर्यात करें (Export)</string>
+    <string name="notification_channel_name">एक्सपायरी अलर्ट</string>
+    <string name="notification_channel_desc">समाप्त होने वाले उत्पादों के लिए सूचनाएं</string>
+    <string name="all">सभी</string>
+    <string name="expired">समाप्त</string>
+    <string name="expiring_soon">जल्द समाप्त होने वाले</string>
+    <string name="safe">सुरक्षित</string>
+    <string name="product_saved">उत्पाद सहेजा गया</string>
+    <string name="product_deleted">उत्पाद हटा दिया गया</string>
+    <string name="confirm_delete">क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?</string>
+    <string name="export_success">CSV सफलतापूर्वक निर्यात किया गया</string>
+    <string name="version">संस्करण</string>
+    <string name="select_category">श्रेणी चुनें</string>
+    <string name="select_expiry_date">समाप्ति तिथि चुनें</string>
+    <string name="required_field">यह फ़ील्ड आवश्यक है</string>
+    <string name="price_with_rupee">₹%s</string>
+    <string name="app_description">उत्पाद समाप्ति तिथियों को ट्रैक करें और नुकसान कम करें</string>
+</resources>

@@ -48,9 +48,11 @@ fun SettingsScreen(
     userProfile: UserProfile?,
     isDarkMode: Boolean,
     onToggleDarkMode: (Boolean) -> Unit,
+    language: String,
+    onChangeLanguage: (String) -> Unit,
     onLogout: () -> Unit,
-    onNavigateToSubscription: () -> Unit,
     onDeleteAccount: () -> Unit,
+    onNavigateToSubscription: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -158,6 +160,66 @@ fun SettingsScreen(
                         checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 )
+            }
+            }
+
+            androidx.compose.material3.Divider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            )
+
+            // Language Selector
+            var expanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+            val currentLanguage = if (language == "hi") "Hindi" else "English"
+            
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = true }
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    androidx.compose.material.icons.Icons.Rounded.Translate,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "App Language",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = currentLanguage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Box {
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text("English") },
+                            onClick = { 
+                                onChangeLanguage("en")
+                                expanded = false 
+                            }
+                        )
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { Text("Hindi (हिंदी)") },
+                            onClick = { 
+                                onChangeLanguage("hi")
+                                expanded = false 
+                            }
+                        )
+                    }
+                }
             }
         }
 

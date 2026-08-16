@@ -18,6 +18,10 @@ class UserPreferences(private val context: Context) {
         preferences[PreferencesKeys.DARK_MODE] ?: false
     }
 
+    val language: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LANGUAGE] ?: "en"
+    }
+
     val loggedInUserId: Flow<Long?> = context.dataStore.data.map { preferences ->
         val id = preferences[PreferencesKeys.LOGGED_IN_USER_ID]
         if (id == -1L) null else id
@@ -26,6 +30,12 @@ class UserPreferences(private val context: Context) {
     suspend fun setDarkMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.DARK_MODE] = enabled
+        }
+    }
+
+    suspend fun setLanguage(lang: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LANGUAGE] = lang
         }
     }
 
@@ -42,5 +52,6 @@ class UserPreferences(private val context: Context) {
     private object PreferencesKeys {
         val DARK_MODE = booleanPreferencesKey("dark_mode")
         val LOGGED_IN_USER_ID = longPreferencesKey("logged_in_user_id")
+        val LANGUAGE = stringPreferencesKey("language")
     }
 }
