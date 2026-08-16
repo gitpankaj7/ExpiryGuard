@@ -215,7 +215,7 @@ fun AppNavigation(
                         icon = {
                             Icon(
                                 imageVector = item.icon,
-                                contentDescription = item.label
+                                contentDescription = stringResource(item.labelRes)
                             )
                         },
                         label = { Text(stringResource(item.labelRes)) },
