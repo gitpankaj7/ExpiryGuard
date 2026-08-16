@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -67,7 +68,7 @@ fun SettingsScreen(
     ) {
         // ── Header ──
         Text(
-            text = "Settings",
+            text = stringResource(com.expiryguard.app.R.string.settings),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -76,7 +77,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(24.dp))
 
         // ── Subscription Section ──
-        SectionHeader(title = "Account & Subscription")
+        SectionHeader(title = stringResource(com.expiryguard.app.R.string.account_and_subscription))
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -97,13 +98,13 @@ fun SettingsScreen(
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (userProfile?.isSubscribed == true) "Premium Member" else "Upgrade to Premium",
+                        text = if (userProfile?.isSubscribed == true) stringResource(com.expiryguard.app.R.string.premium_member) else stringResource(com.expiryguard.app.R.string.upgrade_to_premium),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (userProfile?.isSubscribed == true) "You have full access to all features." else "₹49/month for unlimited tracking & alerts.",
+                        text = if (userProfile?.isSubscribed == true) stringResource(com.expiryguard.app.R.string.full_access) else stringResource(com.expiryguard.app.R.string.subscription_details),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -119,7 +120,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(24.dp))
 
         // ── Appearance Section ──
-        SectionHeader(title = "Appearance")
+        SectionHeader(title = stringResource(com.expiryguard.app.R.string.appearance))
         Spacer(Modifier.height(8.dp))
 
         Card(
@@ -144,12 +145,12 @@ fun SettingsScreen(
                 Spacer(Modifier.width(14.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Dark Mode",
+                        text = stringResource(com.expiryguard.app.R.string.dark_mode),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Easier on the eyes at night",
+                        text = stringResource(com.expiryguard.app.R.string.dark_mode_description),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -171,7 +172,7 @@ fun SettingsScreen(
 
             // Language Selector
             var expanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-            val currentLanguage = if (language == "hi") "Hindi" else "English"
+            val currentLanguage = if (language == "hi") stringResource(com.expiryguard.app.R.string.hindi) else stringResource(com.expiryguard.app.R.string.english)
             
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -189,7 +190,7 @@ fun SettingsScreen(
                 Spacer(Modifier.width(14.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "App Language",
+                        text = stringResource(com.expiryguard.app.R.string.app_language),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
@@ -206,14 +207,14 @@ fun SettingsScreen(
                         onDismissRequest = { expanded = false }
                     ) {
                         androidx.compose.material3.DropdownMenuItem(
-                            text = { Text("English") },
+                            text = { Text(stringResource(com.expiryguard.app.R.string.english)) },
                             onClick = { 
                                 onChangeLanguage("en")
                                 expanded = false 
                             }
                         )
                         androidx.compose.material3.DropdownMenuItem(
-                            text = { Text("Hindi (हिंदी)") },
+                            text = { Text(stringResource(com.expiryguard.app.R.string.hindi)) },
                             onClick = { 
                                 onChangeLanguage("hi")
                                 expanded = false 
@@ -227,7 +228,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(24.dp))
 
         // ── About Section ──
-        SectionHeader(title = "About")
+        SectionHeader(title = stringResource(com.expiryguard.app.R.string.about))
         Spacer(Modifier.height(8.dp))
 
         Card(
@@ -253,7 +254,7 @@ fun SettingsScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Version 1.0.0",
+                            text = stringResource(com.expiryguard.app.R.string.version),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -272,7 +273,7 @@ fun SettingsScreen(
                     )
                     Spacer(Modifier.width(14.dp))
                     Text(
-                        text = "Track product expiry dates and reduce losses",
+                        text = stringResource(com.expiryguard.app.R.string.about_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -283,7 +284,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(32.dp))
 
         // ── Account Section ──
-        SectionHeader(title = "Account")
+        SectionHeader(title = stringResource(com.expiryguard.app.R.string.account))
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = onLogout,

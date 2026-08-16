@@ -47,16 +47,19 @@ import com.expiryguard.app.ui.settings.SettingsScreen
 import com.expiryguard.app.ui.subscription.SubscriptionScreen
 import com.expiryguard.app.ui.assistant.LossRecoveryScreen
 
+import com.expiryguard.app.R
+import androidx.compose.ui.res.stringResource
+
 private data class NavItem(
-    val label: String,
+    val labelRes: Int,
     val icon: ImageVector
 )
 
 private val navItems = listOf(
-    NavItem("Dashboard", Icons.Rounded.Dashboard),
-    NavItem("Assistant", Icons.Rounded.AutoAwesome),
-    NavItem("Products", Icons.Rounded.Inventory2),
-    NavItem("Settings", Icons.Rounded.Settings)
+    NavItem(R.string.dashboard, Icons.Rounded.Dashboard),
+    NavItem(R.string.loss_recovery_assistant, Icons.Rounded.AutoAwesome), // Assuming we have this, otherwise we fall back
+    NavItem(R.string.products, Icons.Rounded.Inventory2),
+    NavItem(R.string.settings, Icons.Rounded.Settings)
 )
 
 @Composable
@@ -215,7 +218,7 @@ fun AppNavigation(
                                 contentDescription = item.label
                             )
                         },
-                        label = { Text(item.label) },
+                        label = { Text(stringResource(item.labelRes)) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,

@@ -39,4 +39,18 @@
     <string name="required_field">This field is required</string>
     <string name="price_with_rupee">₹%s</string>
     <string name="app_description">Track product expiry dates and reduce losses</string>
+    <string name="loss_recovery_assistant">Assistant</string>
+    <string name="account_and_subscription">Account &amp; Subscription</string>
+    <string name="premium_member">Premium Member</string>
+    <string name="upgrade_to_premium">Upgrade to Premium</string>
+    <string name="full_access">You have full access to all features.</string>
+    <string name="subscription_details">₹49/month for unlimited tracking &amp; alerts.</string>
+    <string name="appearance">Appearance</string>
+    <string name="dark_mode_description">Easier on the eyes at night</string>
+    <string name="hindi">Hindi (हिंदी)</string>
+    <string name="english">English</string>
+    <string name="app_language">App Language</string>
+    <string name="about">About</string>
+    <string name="about_description">Track product expiry dates and reduce losses</string>
+    <string name="account">Account</string>
 </resources>
