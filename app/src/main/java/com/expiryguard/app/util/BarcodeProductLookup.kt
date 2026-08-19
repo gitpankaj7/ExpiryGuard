@@ -104,6 +104,9 @@ object BarcodeProductLookup {
         result = lookupUpcItemDb(barcode)
         if (result != null) return@withContext result
 
+        // Try API 5: Web Search Scrape (last resort fallback for generic items)
+        result = lookupFromWebSearch(barcode)
+        if (result != null) return@withContext result
 
         null
     }
@@ -412,6 +415,66 @@ object BarcodeProductLookup {
             )
         } catch (e: Exception) {
             Log.d(TAG, "Google Books API: Error for ISBN $isbn: ${e.message}")
+            return null
+        }
+    }
+
+    /**
+     * Fallback: searches DuckDuckGo for the barcode and tries to extract the first result snippet.
+     * Works very well for generic/local products that eCommerce sites (like BigBasket) have indexed.
+     */
+    private fun lookupFromWebSearch(barcode: String): ProductInfo? {
+        try {
+            val url = URL("https://html.duckduckgo.com/html/?q=$barcode")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.apply {
+                requestMethod = "GET"
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                // Must use a standard User-Agent to avoid immediate blocks
+                setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
+            }
+
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                connection.disconnect()
+                return null
+            }
+
+            val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
+            connection.disconnect()
+            
+            val snippetRegex = "<a class=\"result__snippet\"[^>]*>(.*?)</a>".toRegex(RegexOption.IGNORE_CASE)
+            val snippetMatch = snippetRegex.find(responseBody)
+            
+            if (snippetMatch != null) {
+                var rawText = snippetMatch.groupValues[1]
+                    .replace(Regex("<[^>]*>"), "")
+                    .replace("&amp;", "&")
+                    .replace("&quot;", "\"")
+                    .replace("&#x27;", "'")
+                    .replace("&#39;", "'")
+                    .trim()
+                
+                rawText = rawText.replace(Regex("(?i)^(Buy\\s+|Order\\s+|Shop\\s+)"), "")
+                rawText = rawText.substringBefore("Online at Best Price").trim()
+                rawText = rawText.substringBefore(" - Buy Online").trim()
+                rawText = rawText.substringBefore(" | ").trim()
+                
+                if (rawText.length > 60) {
+                    rawText = rawText.take(60) + "..."
+                }
+                
+                if (rawText.isNotEmpty()) {
+                    Log.d(TAG, "Web Search: Found '$rawText' for barcode: $barcode")
+                    return ProductInfo(
+                        name = rawText,
+                        category = "Other"
+                    )
+                }
+            }
+            return null
+        } catch (e: Exception) {
+            Log.d(TAG, "Web Search: Error for barcode $barcode: ${e.message}")
             return null
         }
     }

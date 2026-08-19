@@ -7,11 +7,15 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.expiryguard.app.ExpiryGuardApp
 import com.expiryguard.app.data.repository.FirestoreProductRepository
+import com.expiryguard.app.data.preferences.UserPreferences
 import com.expiryguard.app.util.DateUtils
 import com.expiryguard.app.util.LossRecoveryEngine
 import com.expiryguard.app.util.LossRecoveryReport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,7 +28,8 @@ data class LossRecoveryUiState(
 )
 
 class LossRecoveryViewModel(
-    private val repository: FirestoreProductRepository
+    private val repository: FirestoreProductRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LossRecoveryUiState())
@@ -39,8 +44,12 @@ class LossRecoveryViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 // Fetch all products to run global analysis
-                repository.getAllProducts().collect { products ->
-                    val report = LossRecoveryEngine.analyze(products)
+                combine(
+                    repository.getAllProducts(),
+                    userPreferences.language
+                ) { products, language ->
+                    LossRecoveryEngine.analyze(products, language)
+                }.collect { report ->
                     _uiState.update { 
                         it.copy(
                             isLoading = false,
@@ -63,7 +72,7 @@ class LossRecoveryViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as ExpiryGuardApp
-                LossRecoveryViewModel(app.container.productRepository)
+                LossRecoveryViewModel(app.container.productRepository, app.container.userPreferences)
             }
         }
     }

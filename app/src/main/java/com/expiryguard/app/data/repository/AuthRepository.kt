@@ -95,9 +95,9 @@ class AuthRepository {
     // Live Render.com URL
     private val BASE_URL = "https://expiryguard-backend-ik07.onrender.com"
     private val client = okhttp3.OkHttpClient.Builder()
-        .connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-        .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .connectTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
         .build()
     private val gson = com.google.gson.Gson()
 
