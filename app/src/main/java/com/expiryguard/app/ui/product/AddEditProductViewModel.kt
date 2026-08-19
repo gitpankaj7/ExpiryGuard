@@ -80,6 +80,21 @@ class AddEditProductViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLookingUp = true, lookupMessage = "Looking up barcode...") }
             try {
+                // First check if the user has scanned this barcode before (Local DB/Firestore)
+                val localProduct = repository.getProductByBarcode(barcode)
+                if (localProduct != null) {
+                    _uiState.update { 
+                        it.copy(
+                            isLookingUp = false, 
+                            lookupMessage = "✅ Found in your history",
+                            name = if (it.name.isBlank()) localProduct.name else it.name,
+                            category = if (it.category.isBlank()) localProduct.category else it.category
+                        ) 
+                    }
+                    return@launch
+                }
+
+                // If not found locally, query external APIs
                 val result = com.expiryguard.app.util.BarcodeProductLookup.lookup(barcode)
 
                 if (result != null) {
@@ -95,7 +110,7 @@ class AddEditProductViewModel(
                         ) 
                     }
                 } else {
-                    _uiState.update { it.copy(isLookingUp = false, lookupMessage = "⚠️ Product not found in database") }
+                    _uiState.update { it.copy(isLookingUp = false, lookupMessage = "⚠️ Product not found in database. Please enter manually.") }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLookingUp = false, lookupMessage = "⚠️ Network error during lookup") }

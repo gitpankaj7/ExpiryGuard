@@ -74,6 +74,20 @@ object BarcodeProductLookup {
      * Returns null only if ALL APIs fail.
      */
     suspend fun lookup(barcode: String): ProductInfo? = withContext(Dispatchers.IO) {
+        // If it is a URL (often from QR codes)
+        if (barcode.startsWith("http://", ignoreCase = true) || barcode.startsWith("https://", ignoreCase = true)) {
+            val result = lookupFromUrl(barcode)
+            if (result != null) return@withContext result
+        }
+
+        // If it is a Book ISBN (10 or 13 digits starting with 978/979)
+        if (barcode.length == 10 || barcode.length == 13) {
+            if (barcode.startsWith("978") || barcode.startsWith("979") || barcode.length == 10) {
+                val result = lookupBookIsbn(barcode)
+                if (result != null) return@withContext result
+            }
+        }
+
         // Try API 1: Open Food Facts (largest free food database)
         var result = lookupOpenFoodFacts(barcode)
         if (result != null) return@withContext result
@@ -277,5 +291,128 @@ object BarcodeProductLookup {
             }
         }
         return "Grocery"
+    }
+
+    /**
+     * Attempts to fetch the URL and extract the Open Graph title or <title> tag.
+     * Useful for generic products with QR codes pointing to their website.
+     */
+    private fun lookupFromUrl(urlStr: String): ProductInfo? {
+        try {
+            val url = URL(urlStr)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.apply {
+                requestMethod = "GET"
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            }
+
+            val responseCode = connection.responseCode
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                Log.d(TAG, "URL Scraping: HTTP $responseCode for URL: $urlStr")
+                connection.disconnect()
+                return null
+            }
+
+            val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
+            connection.disconnect()
+
+            // Try extracting Open Graph title first
+            var name = ""
+            val ogRegex = "<meta\\s+property=\"og:title\"\\s+content=\"([^\"]+)\"".toRegex(RegexOption.IGNORE_CASE)
+            val ogMatch = ogRegex.find(responseBody)
+            if (ogMatch != null) {
+                name = ogMatch.groupValues[1]
+            } else {
+                // Fallback to <title>
+                val titleRegex = "<title>(.*?)</title>".toRegex(RegexOption.IGNORE_CASE)
+                val titleMatch = titleRegex.find(responseBody)
+                if (titleMatch != null) {
+                    name = titleMatch.groupValues[1]
+                }
+            }
+
+            name = name.trim()
+                .replace("&amp;", "&")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+            
+            if (name.isEmpty()) return null
+            
+            // Try to extract an image as well
+            var imageUrl: String? = null
+            val imgRegex = "<meta\\s+property=\"og:image\"\\s+content=\"([^\"]+)\"".toRegex(RegexOption.IGNORE_CASE)
+            val imgMatch = imgRegex.find(responseBody)
+            if (imgMatch != null) {
+                imageUrl = imgMatch.groupValues[1]
+            }
+
+            Log.d(TAG, "URL Scraping: Found '$name' for URL: $urlStr")
+
+            return ProductInfo(
+                name = name,
+                category = "Other", // Generic category for URL scans
+                imageUrl = imageUrl
+            )
+        } catch (e: Exception) {
+            Log.d(TAG, "URL Scraping: Error for URL $urlStr: ${e.message}")
+            return null
+        }
+    }
+
+    /**
+     * Looks up book information using Google Books API for ISBNs.
+     */
+    private fun lookupBookIsbn(isbn: String): ProductInfo? {
+        try {
+            val url = URL("https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.apply {
+                requestMethod = "GET"
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+            }
+
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                connection.disconnect()
+                return null
+            }
+
+            val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
+            connection.disconnect()
+
+            val json = JSONObject(responseBody)
+            if (json.optInt("totalItems", 0) == 0) return null
+
+            val items = json.optJSONArray("items") ?: return null
+            val volumeInfo = items.getJSONObject(0).optJSONObject("volumeInfo") ?: return null
+            
+            val title = volumeInfo.optString("title", "").trim()
+            val authorsArray = volumeInfo.optJSONArray("authors")
+            var author = ""
+            if (authorsArray != null && authorsArray.length() > 0) {
+                author = authorsArray.optString(0)
+            }
+            
+            val imageLinks = volumeInfo.optJSONObject("imageLinks")
+            val imageUrl = imageLinks?.optString("thumbnail", "")?.replace("http:", "https:")?.ifEmpty { null }
+
+            if (title.isEmpty()) return null
+
+            val fullName = if (author.isNotEmpty()) "$title by $author" else title
+
+            Log.d(TAG, "Google Books API: Found '$fullName' for ISBN: $isbn")
+
+            return ProductInfo(
+                name = fullName,
+                category = "Other", // Book/Stationery
+                brand = author.ifEmpty { null },
+                imageUrl = imageUrl
+            )
+        } catch (e: Exception) {
+            Log.d(TAG, "Google Books API: Error for ISBN $isbn: ${e.message}")
+            return null
+        }
     }
 }

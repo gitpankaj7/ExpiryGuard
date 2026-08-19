@@ -80,6 +80,24 @@ class FirestoreProductRepository(
         }
     }
 
+    suspend fun getProductByBarcode(barcode: String): ProductEntity? {
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return null
+        return try {
+            val querySnapshot = firestore.collection("users").document(uid).collection("products")
+                .whereEqualTo("barcode", barcode)
+                .limit(1)
+                .get()
+                .await()
+            if (!querySnapshot.isEmpty) {
+                querySnapshot.documents[0].toObject(ProductEntity::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun insert(product: ProductEntity) {
         val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
         val collection = firestore.collection("users").document(uid).collection("products")
