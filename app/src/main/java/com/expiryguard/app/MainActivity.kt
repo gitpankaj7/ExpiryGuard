@@ -45,12 +45,14 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             val configuration = androidx.compose.ui.platform.LocalConfiguration.current
             
             val locale = java.util.Locale(language)
+            java.util.Locale.setDefault(locale)
             val config = android.content.res.Configuration(configuration)
             config.setLocale(locale)
-            val localizedContext = context.createConfigurationContext(config)
+            
+            @Suppress("DEPRECATION")
+            context.resources.updateConfiguration(config, context.resources.displayMetrics)
 
             androidx.compose.runtime.CompositionLocalProvider(
-                androidx.compose.ui.platform.LocalContext provides localizedContext,
                 androidx.compose.ui.platform.LocalConfiguration provides config
             ) {
                 ExpiryGuardTheme(darkTheme = isDarkMode) {
